@@ -10,9 +10,20 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import ru.acorneo.progprobs.repositories.UserRepository;
+import ru.acorneo.progprobs.repositories.UserRolesRepository;
+import ru.acorneo.progprobs.util.UserDetailsServiceImplementation;
 
 @Configuration
 public class SecurityConfiguration {
+    private final UserRepository userRepository;
+    private final UserRolesRepository userRolesRepository;
+
+    public SecurityConfiguration(UserRepository userRepository, UserRolesRepository userRolesRepository) {
+        this.userRepository = userRepository;
+        this.userRolesRepository = userRolesRepository;
+    }
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
@@ -20,19 +31,16 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(
                 auth -> auth.requestMatchers("/api/v1/users/create").permitAll()
                         .anyRequest().authenticated()
-        ).httpBasic(Customizer.withDefaults());
+        )
+                .httpBasic(Customizer.withDefaults())
+                .anonymous(anonymous -> anonymous.disable());
 
         return httpSecurity.build();
     }
 
     @Bean
-    UserDetailsService userDetailsService() {
-        UserDetails user = User.builder()
-                .username("Victor")
-                .password(passwordEncoder().encode("1234"))
-                .roles("USER")
-                .build();
-        return new InMemoryUserDetailsManager(user);
+    public UserDetailsService userDetailsService() {
+        return new UserDetailsServiceImplementation(userRepository, userRolesRepository);
     }
 
     @Bean
