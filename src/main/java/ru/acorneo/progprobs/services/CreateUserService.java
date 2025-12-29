@@ -37,7 +37,7 @@ public class CreateUserService implements Command<UserDTO, MessageResponse> {
 
         userRepository.save(currentUser);
 
-        String message = "Successfully created userr: " + currentUser.toString();
+        String message = "Successfully created user: " + currentUser.toString();
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse(message));
     }
 }
